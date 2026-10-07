@@ -1,0 +1,137 @@
+{
+  "info": {
+    "_postman_id": "personas-fastapi-crud",
+    "name": "Personas FastAPI CRUD",
+    "description": "Colección para probar el CRUD de personas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Verifica que el servidor esté corriendo."
+      },
+      "response": []
+    },
+    {
+      "name": "Registrar persona",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"María\",\n  \"apellido\": \"García\",\n  \"correo\": \"maria.garcia@ejemplo.com\",\n  \"mensaje\": \"Hola, este es un mensaje de prueba.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/personas",
+          "host": ["{{base_url}}"],
+          "path": ["api", "personas"]
+        },
+        "description": "Crea una nueva persona."
+      },
+      "response": []
+    },
+    {
+      "name": "Listar personas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/personas?limit=20&offset=0",
+          "host": ["{{base_url}}"],
+          "path": ["api", "personas"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Obtiene el listado paginado de personas."
+      },
+      "response": []
+    },
+    {
+      "name": "Consultar persona",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/personas/{{persona_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "personas", "{{persona_id}}"]
+        },
+        "description": "Obtiene una persona por ID."
+      },
+      "response": []
+    },
+    {
+      "name": "Editar persona",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mensaje\": \"Mensaje actualizado\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/personas/{{persona_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "personas", "{{persona_id}}"]
+        },
+        "description": "Actualiza parcialmente una persona."
+      },
+      "response": []
+    },
+    {
+      "name": "Eliminar persona",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/personas/{{persona_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "personas", "{{persona_id}}"]
+        },
+        "description": "Elimina una persona por ID."
+      },
+      "response": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "persona_id",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

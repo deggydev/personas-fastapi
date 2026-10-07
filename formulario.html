@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRUD de personas</title>
+  <style>
+    body { font-family: system-ui; max-width: 720px; margin: 40px auto; padding: 20px; }
+    label { display: block; margin: 12px 0 4px; }
+    input, textarea, button { box-sizing: border-box; width: 100%; padding: 10px; font: inherit; }
+    button { cursor: pointer; margin-top: 12px; }
+    .row { display: flex; gap: 8px; }
+    .row button { width: auto; flex: 1; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+    td.actions { white-space: nowrap; }
+    td.actions button { width: auto; margin: 0 4px; padding: 6px 10px; }
+    pre { white-space: pre-wrap; background: #f5f5f5; padding: 12px; border-radius: 4px; }
+    .hidden { display: none; }
+    h2 { margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <h1>CRUD de personas</h1>
+
+  <section>
+    <h2>Registrar / Editar</h2>
+    <form id="form">
+      <input type="hidden" id="id" value="">
+      <label>Nombre <input name="nombre" id="nombre" required maxlength="100"></label>
+      <label>Apellido <input name="apellido" id="apellido" required maxlength="100"></label>
+      <label>Correo <input name="correo" id="correo" type="email" required maxlength="254"></label>
+      <label>Mensaje <textarea name="mensaje" id="mensaje" required maxlength="2000" rows="4"></textarea></label>
+      <div class="row">
+        <button type="submit" id="btnGuardar">Registrar</button>
+        <button type="button" id="btnCancelar" class="hidden">Cancelar edición</button>
+      </div>
+    </form>
+    <pre id="resultado" role="status"></pre>
+  </section>
+
+  <section>
+    <h2>Listado</h2>
+    <button id="btnListar">Cargar personas</button>
+    <table id="tabla" class="hidden">
+      <thead>
+        <tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Mensaje</th><th>Acciones</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const setStatus = text => $('resultado').textContent = text;
+
+    $('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = $('id').value;
+      const body = JSON.stringify({
+        nombre: $('nombre').value.trim(),
+        apellido: $('apellido').value.trim(),
+        correo: $('correo').value.trim(),
+        mensaje: $('mensaje').value.trim(),
+      });
+      const url = id ? `/api/personas/${id}` : '/api/personas';
+      const method = id ? 'PATCH' : 'POST';
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body,
+        });
+        const data = await res.json();
+        setStatus(JSON.stringify(data, null, 2));
+        if (res.ok) { $('form').reset(); $('id').value = ''; resetFormMode(); listar(); }
+      } catch (err) { setStatus('Error: ' + err.message); }
+    });
+
+    $('btnCancelar').addEventListener('click', () => { $('form').reset(); $('id').value = ''; resetFormMode(); });
+
+    $('btnListar').addEventListener('click', listar);
+
+    async function listar() {
+      try {
+        const res = await fetch('/api/personas');
+        if (!res.ok) { setStatus('Error al listar: ' + res.status); return; }
+        const data = await res.json();
+        const tbody = $('tabla').querySelector('tbody');
+        tbody.innerHTML = '';
+        data.forEach(p => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${p.id}</td><td>${p.nombre} ${p.apellido}</td><td>${p.correo}</td><td>${p.mensaje}</td>
+            <td class="actions">
+              <button onclick="cargarEdicion(${p.id})">Editar</button>
+              <button onclick="eliminar(${p.id})">Eliminar</button>
+            </td>`;
+          tbody.appendChild(tr);
+        });
+        $('tabla').classList.remove('hidden');
+      } catch (err) { setStatus('Error: ' + err.message); }
+    }
+
+    window.cargarEdicion = async id => {
+      try {
+        const res = await fetch(`/api/personas/${id}`);
+        if (!res.ok) { setStatus('Error al consultar: ' + res.status); return; }
+        const p = await res.json();
+        $('id').value = p.id;
+        $('nombre').value = p.nombre;
+        $('apellido').value = p.apellido;
+        $('correo').value = p.correo;
+        $('mensaje').value = p.mensaje;
+        $('btnGuardar').textContent = 'Actualizar';
+        $('btnCancelar').classList.remove('hidden');
+      } catch (err) { setStatus('Error: ' + err.message); }
+    };
+
+    window.eliminar = async id => {
+      if (!confirm('¿Eliminar persona ' + id + '?')) return;
+      try {
+        const res = await fetch(`/api/personas/${id}`, { method: 'DELETE' });
+        if (res.ok) { setStatus('Persona ' + id + ' eliminada'); listar(); }
+        else { setStatus('Error al eliminar: ' + res.status); }
+      } catch (err) { setStatus('Error: ' + err.message); }
+    };
+
+    function resetFormMode() {
+      $('btnGuardar').textContent = 'Registrar';
+      $('btnCancelar').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
